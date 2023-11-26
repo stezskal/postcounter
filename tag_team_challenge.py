@@ -1,5 +1,8 @@
 import pandas as pd
 import pymysql  # You can use the appropriate library for your database
+import os
+import matplotlib.pyplot as plt
+import get_attendance
 
 # Define teams and corresponding PAX
 teams = {
@@ -11,29 +14,11 @@ teams = {
     'Team 6': ['D3', 'Mule', 'Wally', 'Zebulon', 'Autopilot', 'Frosted Tips', 'McDowells'],
 }
 
-
-
-# Initialize MySQL connection
-
-db_params = {
-    'host' : "f3stlouis.cac36jsyb5ss.us-east-2.rds.amazonaws.com",
-    'user' : "paxminer",
-    'database' : "f3nwhighway"
-}
-
-
-# Establish a connection to the database
-connection = pymysql.connect(**db_params)
-
-
-# SQL query to get attendance data
-sql_query = """
-    SELECT PAX, Date
-    FROM attendance_view
-"""
-
-# Read the data into a DataFrame
-df = pd.read_sql_query(sql_query, connection)
+## Read the data from pickle file if it exists, if not run and get data from SQL.
+file_path = 'attendance_data.pkl'
+if not os.path.exists(file_path):
+    get_attendance.get_attendance_df_pickle(file_path)
+df = pd.read_pickle('attendance_data.pkl')
 
 # Filter data for November and December 2023
 filtered_df = df[
@@ -63,5 +48,12 @@ print(result_pax)
 print("\nResults table for each Team's counts:")
 print(result_team)
 
-# Close the database connection
-connection.close()
+
+# Plotting the team results
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.axis('off')  # Turn off axis
+table_data = [result_team.columns] + result_team.values.tolist()
+ax.table(cellText=table_data, colLabels=None, cellLoc='center', loc='center')
+
+plt.savefig('team_results.png', bbox_inches='tight')
+plt.show()
