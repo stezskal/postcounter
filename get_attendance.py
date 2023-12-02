@@ -13,6 +13,8 @@ def get_attendance_df_pickle(pkl_filename='attendance_data.pkl'):
     # Initialize MySQL connection
     # Get the database password from the environment variable
     db_password = os.environ.get('DB_PASSWORD')
+    if(db_password==None):
+        raise ValueError("Must set the DB_PASSWORD env variable in order to login to database!")
     db_params = {
         'host' : "f3stlouis.cac36jsyb5ss.us-east-2.rds.amazonaws.com",
         'user' : "paxminer",
