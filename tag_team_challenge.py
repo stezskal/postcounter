@@ -13,10 +13,30 @@ teams = {
     'Team 5': ['Fanny-Pack', 'LaX', 'Speedo', 'Swoosh', 'Backseat', 'FEMA', 'Business Casual'],
     'Team 6': ['D3', 'Mule', 'Wally', 'Zebulon', 'Autopilot', 'Frosted Tips', 'McDowells'],
 }
+# Create a mapping between team names and the desired values for the new column
+team_nicknames = {
+    'Team 1': '(Scrum)',
+    'Team 2': 'Who does #2 work for? (Safetys Off)',
+    'Team 3': 'Team Threesomes (Smores)',
+    'Team 4': 'Drew Barryfour (Soybean)',
+    'Team 5': '(Fanny-pack)',
+    'Team 6': 'Sixitime (D3)',
+    # Add other teams and corresponding values as needed
+}
 
+team_bonus = {
+    'Team 1': 0,
+    'Team 2': 0,
+    'Team 3': 2,
+    'Team 4': 0,
+    'Team 5': 1,
+    'Team 6': 0,
+}
+
+force_get_attendance = True
 ## Read the data from pickle file if it exists, if not run and get data from SQL.
 file_path = 'attendance_data.pkl'
-if not os.path.exists(file_path):
+if not os.path.exists(file_path) or force_get_attendance:
     get_attendance.get_attendance_df_pickle(file_path)
 df = pd.read_pickle('attendance_data.pkl')
 
@@ -41,19 +61,74 @@ result_pax = filtered_df.groupby(['Team', 'PAX']).size().reset_index(name='Total
 # Results table for each Team's counts
 result_team = result_pax.groupby('Team')['TotalPosts'].sum().reset_index()
 
+# Order the DataFrames in descending order of 'TotalPosts'
+result_pax = result_pax.sort_values(by='TotalPosts', ascending=False)
+result_team = result_team.sort_values(by='TotalPosts', ascending=False)
+
+
+# Add a new column based on the team names
+result_team['Name'] = result_team['Team'].map(team_nicknames)
+
+# Add a new columns  on the team number
+result_team['Bonus Points'] = result_team['Team'].map(team_bonus)
+result_team['Total Points'] = result_team['TotalPosts'] + result_team['Bonus Points']
+
+desired_order = ['Team', 'Name', 'TotalPosts', 'Bonus Points', 'Total Points']
+result_team = result_team[desired_order]
+
 # Display the results
 print("Results table for PAX with posts:")
 print(result_pax)
+
+#for team_name in teams.keys():
+    #result_team[team_name]['Total']
 
 print("\nResults table for each Team's counts:")
 print(result_team)
 
 
 # Plotting the team results
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(12, 6))
 ax.axis('off')  # Turn off axis
 table_data = [result_team.columns] + result_team.values.tolist()
-ax.table(cellText=table_data, colLabels=None, cellLoc='center', loc='center')
+ax.table(cellText=table_data, colLabels=None, cellLoc='center', loc='center', fontsize=72)
+
 
 plt.savefig('team_results.png', bbox_inches='tight')
 plt.show()
+
+# Convert the DataFrame to an HTML table
+html_table = result_team.to_html(index=False)
+
+with open('team_results.html', 'w') as f:
+    f.write(html_table)
+
+html_pax_table = result_pax.to_html(index=False)
+with open('team_pax.html', 'w') as f:
+    f.write(html_pax_table)
+
+
+## experiment with auto-detecting bonus point for all posting
+
+#for team_name in teams.keys():
+#    # Specify the team you're interested in
+#    #team_name = 'Team 3'
+#
+#    # Filter the DataFrame for the specified team
+#    #team_data = df[df['Team'] == team_name]
+#
+#    # Get the list of all members in the specified team
+#    #all_members = ['Scrum', 'Gazelle', 'Redick', 'EscapeRoom', 'Great Clips', 'Frank N\' Beans', 'Lulu']
+#    all_members = teams[team_name]
+#    # Add other teams as needed
+#
+#    # Group the data by Date and count the unique members for each date
+#    #date_member_counts = team_data.groupby('Date')['PAX'].nunique()
+#    date_member_counts = filtered_df.groupby('Date')['PAX'].nunique()
+#
+#
+#    # Filter the dates where all members have an entry
+#    dates_with_all_members = date_member_counts[date_member_counts == len(all_members)].index
+#
+#    print(f'Dates where all members of {team_name} have an entry:')
+#    print(dates_with_all_members)
