@@ -4,6 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import get_attendance
 
+
+
 # Define teams and corresponding PAX
 teams = {
     'Team 1': ['Scrum', 'Gazelle', 'Redick', 'EscapeRoom', 'Great Clips', 'Frank N\' Beans', 'Lulu'],
@@ -19,7 +21,7 @@ team_nicknames = {
     'Team 2': 'Who does #2 work for? (Safetys Off)',
     'Team 3': 'Team Threesomes (Smores)',
     'Team 4': 'Drew Barryfour (Soybean)',
-    'Team 5': '(Fanny-pack)',
+    'Team 5': 'Great RESPECTations (Fanny-pack)',
     'Team 6': 'Sixitime (D3)',
     # Add other teams and corresponding values as needed
 }
@@ -40,10 +42,12 @@ if not os.path.exists(file_path) or force_get_attendance:
     get_attendance.get_attendance_df_pickle(file_path)
 df = pd.read_pickle('attendance_data.pkl')
 
+date_str = input("Up to and including date e.g. 2023-12-01")
+
 # Filter data for November and December 2023
 filtered_df = df[
     (df['Date'] >= '2023-11-01') &
-    (df['Date'] < '2024-01-01')
+    (df['Date'] <= date_str)
 ]
 # Filter data for November and December 2023
 #df['Date'] = pd.to_datetime(df['Date'])
@@ -54,6 +58,7 @@ filtered_df = df[
 # Create a new column for Team based on PAX
 for team, pax_list in teams.items():
     filtered_df.loc[filtered_df['PAX'].isin(pax_list), 'Team'] = team
+
 
 # Results table for PAX with posts
 result_pax = filtered_df.groupby(['Team', 'PAX']).size().reset_index(name='TotalPosts')
@@ -80,22 +85,9 @@ result_team = result_team[desired_order]
 print("Results table for PAX with posts:")
 print(result_pax)
 
-#for team_name in teams.keys():
-    #result_team[team_name]['Total']
-
 print("\nResults table for each Team's counts:")
 print(result_team)
 
-
-# Plotting the team results
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.axis('off')  # Turn off axis
-table_data = [result_team.columns] + result_team.values.tolist()
-ax.table(cellText=table_data, colLabels=None, cellLoc='center', loc='center', fontsize=72)
-
-
-plt.savefig('team_results.png', bbox_inches='tight')
-plt.show()
 
 # Convert the DataFrame to an HTML table
 html_table = result_team.to_html(index=False)
@@ -106,6 +98,30 @@ with open('team_results.html', 'w') as f:
 html_pax_table = result_pax.to_html(index=False)
 with open('team_pax.html', 'w') as f:
     f.write(html_pax_table)
+
+latest_day_df = filtered_df[(filtered_df['Date']==date_str)]
+print(f"\n\n#tag-team-challenge posts for {date_str}")
+for team in teams:
+    team_pax = latest_day_df[(latest_day_df['Team']==team)]['PAX'].tolist()
+    cnt = len(team_pax)
+    if(cnt>0):
+        paxstr='@'+' @'.join(team_pax)
+    else:
+        paxstr=''
+    print(f"{team} --  +{cnt} posted:  {paxstr}")
+
+    mo_list=[]
+    for pax in teams[team]:
+        if pax not in team_pax:
+            mo_list.append(pax)
+
+    cnt = len(mo_list)
+    if(cnt>0):
+        paxstr='@'+' @'.join(mo_list)
+    else:
+        paxstr=''
+    print(f"(MO:  {paxstr})")
+    print(f"\n")
 
 
 ## experiment with auto-detecting bonus point for all posting
