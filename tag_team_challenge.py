@@ -18,7 +18,7 @@ teams = {
 }
 # Create a mapping between team names and the desired values for the new column
 team_nicknames = {
-    'Team 1': '(Scrum)',
+    'Team 1': 'Team SCRUMptious(Scrum)',
     'Team 2': 'Who does #2 work for? (Safetys Off)',
     'Team 3': 'Team Threesomes (Smores)',
     'Team 4': 'Drew Barryfour (Soybean)',
