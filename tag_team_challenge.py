@@ -3,6 +3,7 @@ import pymysql  # You can use the appropriate library for your database
 import os
 import matplotlib.pyplot as plt
 import get_attendance
+from datetime import datetime
 
 
 
@@ -85,8 +86,6 @@ result_team = result_team[desired_order]
 print("Results table for PAX with posts:")
 print(result_pax)
 
-print("\nResults table for each Team's counts:")
-print(result_team)
 
 
 # Convert the DataFrame to an HTML table
@@ -99,8 +98,17 @@ html_pax_table = result_pax.to_html(index=False)
 with open('team_pax.html', 'w') as f:
     f.write(html_pax_table)
 
+date_object = datetime.strptime(date_str, "%Y-%m-%d")
+# Get the day of the week (Monday is 0 and Sunday is 6)
+day_of_week = date_object.weekday()
+day_name = date_object.strftime("%A")
+
+date_str_full = day_name+" "+date_str
+
+
 latest_day_df = filtered_df[(filtered_df['Date']==date_str)]
-print(f"\n\n#tag-team-challenge posts for {date_str}")
+print(f"\n\n======  #tag-team-challenge posts for {date_str_full} ======\n")
+print(result_team)
 for team in teams:
     team_pax = latest_day_df[(latest_day_df['Team']==team)]['PAX'].tolist()
     cnt = len(team_pax)
@@ -121,7 +129,7 @@ for team in teams:
     else:
         paxstr=''
     print(f"(MO:  {paxstr})")
-    print(f"\n")
+    #print(f"\n")
 
 
 ## experiment with auto-detecting bonus point for all posting
