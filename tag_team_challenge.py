@@ -29,7 +29,7 @@ team_nicknames = {
 
 team_bonus = {
     'Team 1': 0,
-    'Team 2': 0,
+    'Team 2': 1,
     'Team 3': 2,
     'Team 4': 0,
     'Team 5': 1,
