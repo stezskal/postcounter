@@ -9,12 +9,12 @@ from datetime import datetime
 
 # Define teams and corresponding PAX
 teams = {
-    'Team 1': ['Scrum', 'Gazelle', 'Redick', 'EscapeRoom', 'Great Clips', 'Frank N\' Beans', 'Lulu'],
+    'Team 1': ['Scrum', 'Gazelle', 'Redick', 'EscapeRoom', 'Great Clips', 'Frank N’ Beans', 'lulu'],
     'Team 2': ['Safety’s off', 'Captain Kirk', 'Spork', 'Big Spoon', 'Luigi', 'Majkowski', 'Lost Signal'],
     'Team 3': ['Smores', 'Gypsy', 'Connors', 'Ricky-Bobby', 'Pryor', 'Spirit', 'Guppy'],
     'Team 4': ['Soybean', 'Tuna', 'Saganaki', 'White Belt', 'Lake Forest', 'PomPom', 'Caddyshack'],
     'Team 5': ['Fanny-Pack', 'LaX', 'Speedo', 'Swoosh', 'Backseat', 'FEMA', 'Business Casual'],
-    'Team 6': ['D3', 'Mule', 'Wally', 'Zebulon', 'Autopilot', 'Frosted Tips', 'McDowells'],
+    'Team 6': ['D3', 'Mule', 'Wally', 'Zebulon', 'Autopilot', 'Frosted Tips', 'McDowell\'s'],
 }
 # Create a mapping between team names and the desired values for the new column
 team_nicknames = {
@@ -30,9 +30,9 @@ team_nicknames = {
 team_bonus = {
     'Team 1': 0,
     'Team 2': 1,
-    'Team 3': 2,
+    'Team 3': 3,
     'Team 4': 0,
-    'Team 5': 1,
+    'Team 5': 2,
     'Team 6': 0,
 }
 
