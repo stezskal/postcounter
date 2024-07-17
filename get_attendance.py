@@ -29,8 +29,8 @@ def get_attendance_df_pickle(pkl_filename='attendance_data.pkl'):
 
     # SQL query to get attendance data
     sql_query = """
-        SELECT PAX, Date
-        FROM attendance_view
+        SELECT PAX, Date, AO, Q
+        FROM attendance_view_with_Q
     """
 
     # Read the data into a DataFrame
