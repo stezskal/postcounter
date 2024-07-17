@@ -20,17 +20,21 @@ df = pd.read_pickle('attendance_data.pkl')
 print("Note must include leading zeros for the date entry below:")
 start_date_str = input("Start date filter e.g. 2023-12-01:")
 end_date_str = input("End date filter e.g. 2023-12-01:")
-pax_str = input("PAX Name:")
+pax_str = input("PAX Name (hit return for all PAX):")
 
 
-# Filter data for November and December 2023
-filtered_pax_df = df[df['PAX']==pax_str]
+## Filter by PAX
+if(pax_str==''):
+    filtered_pax_df = df
+else:
+    filtered_pax_df = df[df['PAX']==pax_str]
 
 posts=filtered_pax_df.shape[0]
 print(f"{pax_str} returned {posts} all time.")
 if(posts==0):
     raise Exception("0 posts returned")
 
+## Filter by date
 filtered_pax_date_df = filtered_pax_df[
     (filtered_pax_df['Date'] >= start_date_str) &
     (filtered_pax_df['Date'] <= end_date_str)
