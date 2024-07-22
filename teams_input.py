@@ -12,6 +12,7 @@ class Teams(object):
         self._get_pax_teams_from_google_sheets()
         self._get_aos_from_google_sheets()
         self._get_names_from_google_sheets()
+        self._get_team_names()
 
     def _connect_google_sheets(self):
         ## instantiate the sheets module (custom)
@@ -23,7 +24,7 @@ class Teams(object):
         ws=self.sheets_connection.get_sheet('teams')
         df = get_as_dataframe(ws, evaluate_formulas=True)
 
-        print(tabulate(df))
+        #print(tabulate(df))
 
         self.teams = df['Team'].unique()
         print(self.teams)
@@ -32,7 +33,7 @@ class Teams(object):
             paxs = df[df['Team']==team]['PAX'].unique()
             team_dict[team]=paxs
 
-        print(tabulate(team_dict))
+        #print(tabulate(team_dict))
 
         l=len(team_dict.keys())
         if(l not in [8,9]):
@@ -100,7 +101,10 @@ class Teams(object):
         for index, row in df.iterrows():
             pax = row['PAX']
             ## Lookup team for that PAX
-            home = self.get_home_for_pax(pax) # gets E or W for that PAX
+            try:
+                home = self.get_home_for_pax(pax) # gets E or W for that PAX
+            except:
+                raise Exception(f"Could not get home for pax {pax}, are they new and do they need to be added to google sheet input?")
             ## Assign E or W for that row in Home column
             df.iloc[index, df.columns.get_loc('PAXHome')]=home
 
@@ -124,6 +128,7 @@ class Teams(object):
 
         ## group/sort by teams
         df.sort_values(by='Team', inplace=True)
+        df.sort_values(by='Date', inplace=True)
 
         ## reset index starting at 0
         df.reset_index(inplace=True, drop=True)
@@ -142,6 +147,7 @@ class Teams(object):
         df['Post Points']=0
         df['Q Points']=0
         df['Total Points']=0
+        df['Notes']=''
         for index, row in df.iterrows():
             q_points=0
             if row['PAX']==row['Q']:
@@ -156,6 +162,20 @@ class Teams(object):
                 df.iloc[index, df.columns.get_loc('Post Points')]=post_points
 
             df.iloc[index, df.columns.get_loc('Total Points')]=post_points + q_points
+
+        self.check_runruck_q_points(df)
+
+    def check_runruck_q_points(self,df):
+        # Merge the two DataFrames on the 'AO' column
+        merged_df = pd.merge(df, self.aos_df, on='AO', how='left')
+
+        # Check if Q Points are non-zero and Beatdown is not 'y'
+        condition = (merged_df['Q Points'] > 0) & (merged_df['Beatdown'] != 'y')
+
+        # Zero out 'Q Points' and update 'Notes' column based on the condition
+        df.loc[condition, 'Q Points'] = 0
+        df.loc[condition, 'Total Points'] = df.loc[condition, 'Post Points']
+        df.loc[condition, 'Notes'] = df.loc[condition, 'Notes'] + 'Run/Ruck no Q pts'
             
 
     def tally_team_points(self, df):
@@ -172,16 +192,44 @@ class Teams(object):
         pts_df.rename(columns={0:'Points'}, inplace=True)
         pts_df.sort_values(by='Points', ascending=False, inplace=True)
 
-        self._replace_team_names(pts_df)
+        pts_df['PAX']=''
+        for index, row in pts_df.iterrows():
+            pts_df.loc[index, 'PAX'] = ", ".join(self.team_dict[index])
+
+
+
+        self.replace_team_names(pts_df)
 
         self.pts_df = pts_df
 
         return self.pts_df
 
 
-    def _replace_team_names(self,df):
+    def _get_team_names(self):
+        self.team_names={}
+        for pax_team in self.teams:
+            try:
+                new_team = self.team_names_df[self.team_names_df['PAX']==pax_team].iloc[0,self.team_names_df.columns.get_loc('Name')]
+            except:
+                raise Exception("There was an issue trying to replace team name {pax_team} from the google sheet, check that there is an entry for this pax team.")
+            self.team_names[pax_team] = new_team
+    
+    def replace_team_names(self,df):
         for index, row in df.iterrows():
             pax_team=row.name ## index is the team name
-            new_team = self.team_names_df[self.team_names_df['PAX']==pax_team].iloc[0,self.team_names_df.columns.get_loc('Name')]
+            new_team = self.team_names[pax_team]
             df.rename(index={pax_team: new_team}, inplace=True)
+
+    def check_for_double_taps(self, df):
+        # Create a boolean mask to identify the first occurrence of each PAX on the same date
+        df['is_first_occurrence'] = ~df.duplicated(subset=['PAX', 'Date'], keep='first')
+
+        # Zero out 'Post Points' and 'Q Points' and update 'Notes' column for subsequent occurrences
+        df.loc[~df['is_first_occurrence'], ['Post Points', 'Q Points', 'Total Points']] = 0
+        df.loc[~df['is_first_occurrence'], 'Notes'] = df.loc[~df['is_first_occurrence'], 'Notes'] + 'Add\'l workout no points'
+
+        # Drop the helper column
+        df = df.drop(columns=['is_first_occurrence'])
+
+        
 

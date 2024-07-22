@@ -8,6 +8,7 @@ from datetime import datetime
 from tabulate import tabulate
 from datetime import datetime, timedelta
 
+import make_html
 
 from teams_input import Teams
 
@@ -47,35 +48,48 @@ def main(start_date: str, end_date: str, get_database: bool):
     teams.add_ao_home_to_posts_df(day_df)
 
     teams.evaluate_posts(day_df)
+    teams.check_for_double_taps(day_df)
 
     team_results = teams.tally_team_points(day_df)
     #teams.check_q(day_df)
 
-    print(tabulate(day_df, headers='keys', tablefmt='pretty'))
-
-    #for index, row in day_df.iterrows():
-    #    pax = row['PAX']
-    #    q = row['Q']
-    #    ao = row['AO']
-    #    if(pax==q):
-    #        q_today=True
-    #        q_str="+Q Point!"
-    #    else:
-    #        q_today=True
-    #        q_str=""
-    #
-    #    team = row['Team']
-    #    if team=="NoTeam":
-    #        noteam_list.append(pax)
-    #
-    #        
-    #        print(f"{date}  Team {team}  @{pax} scored post at {ao}! {q_str}")
 
 
-    print(tabulate(team_results, headers='keys', tablefmt='pretty'))
-    print(f"NoTeam PAX: {noteam_list}")
-    print(f"Done")
+    with open("output.txt", 'w') as file:
+        file.write(f'{start_date}\n\n')
 
+        file.write(tabulate(team_results, headers='keys', tablefmt='pretty'))
+        file.write(f'\n\n')
+        file.write(tabulate(day_df, headers='keys', tablefmt='pretty'))
+        file.write(f'\n\n')
+        file.write(tabulate(teams.pax_df, headers='keys', tablefmt='pretty'))
+        file.write(f'\n\n')
+
+
+        print(f"Done")
+        file.write(f"{start_date:}  \n")
+
+        for index, row in day_df.iterrows():
+            pax = row['PAX']
+            q = row['Q']
+            ao = row['AO']
+            pts = row['Total Points']
+            if(pax==q):
+                q_today=True
+                q_str="(+Q Point!) "
+            else:
+                q_today=True
+                q_str=""
+        
+            team = row['Team']
+            if team=="NoTeam":
+                noteam_list.append(pax)
+        
+                
+            #file.write(f"{start_date:<8}  For team {teams.team_names[team]:<30},  @{pax:<20} posted at {ao} and scored {pts}! {q_str}\n")
+            file.write(f'@{pax} posted at #{ao} and scored {pts} points for team {teams.team_names[team]}! {q_str}\n')
+    
+    make_html.combine_dataframes_to_html('./challenge.htm',team_results,day_df,date=end_date,titles=["Team Standings", "Post Data"])
 
 
 
