@@ -128,7 +128,7 @@ class Teams(object):
 
         ## group/sort by teams
         df.sort_values(by='Team', inplace=True)
-        df.sort_values(by='Date', inplace=True)
+        df.sort_values(by='Date', ascending=False, inplace=True)
 
         ## reset index starting at 0
         df.reset_index(inplace=True, drop=True)
@@ -145,15 +145,8 @@ class Teams(object):
 
     def evaluate_posts(self, df):
         df['Post Points']=0
-        df['Q Points']=0
-        df['Total Points']=0
         df['Notes']=''
         for index, row in df.iterrows():
-            q_points=0
-            if row['PAX']==row['Q']:
-                q_points=1
-                df.iloc[index, df.columns.get_loc('Q Points')]=q_points
-
             if row['PAXHome']==row['AOHome']:
                 post_points=1
                 df.iloc[index, df.columns.get_loc('Post Points')]=post_points
@@ -161,9 +154,22 @@ class Teams(object):
                 post_points=2
                 df.iloc[index, df.columns.get_loc('Post Points')]=post_points
 
-            df.iloc[index, df.columns.get_loc('Total Points')]=post_points + q_points
+        self.check_for_double_taps(df)
+
+    def evaluate_Qs(self, df):
+        df['Q Points']=0
+        for index, row in df.iterrows():
+            q_points=0
+            if row['PAX']==row['Q']:
+                q_points=1
+                df.iloc[index, df.columns.get_loc('Q Points')]=q_points
 
         self.check_runruck_q_points(df)
+
+    def evaluate_total_points(self, df):
+        df['Total Points']=0
+        for index, row in df.iterrows():
+            df.iloc[index, df.columns.get_loc('Total Points')]=row['Post Points'] + row['Q Points']
 
     def check_runruck_q_points(self,df):
         # Merge the two DataFrames on the 'AO' column
@@ -229,7 +235,17 @@ class Teams(object):
         df.loc[~df['is_first_occurrence'], 'Notes'] = df.loc[~df['is_first_occurrence'], 'Notes'] + 'Add\'l workout no points'
 
         # Drop the helper column
-        df = df.drop(columns=['is_first_occurrence'])
+        df = df.drop(columns=['is_first_occurrence'], inplace=True)
 
         
-
+    def make_pax_leaderboard_df(self, df):
+        pax_list = df['PAX'].unique()
+        dict = {}
+        for pax in pax_list:
+            points = df.loc[df['PAX'] == pax, 'Total Points'].sum()
+            dict[pax]=points
+        self.pax_leaderboard = pd.DataFrame(dict, index=[0]).transpose()
+        self.pax_leaderboard.rename(columns={0:'Points'}, inplace=True)
+        self.pax_leaderboard.sort_values(by="Points", ascending=False, inplace=True)
+        
+        print("")
