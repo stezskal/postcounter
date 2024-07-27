@@ -86,7 +86,7 @@ class Teams(object):
         '''
 
         ## create a mask of all the rows that contain downrange for PAX
-        mask = df['PAX'].str.contains('downrange')
+        mask = df['PAX'].str.contains('downrange', case=False)
         ## drop them in place for this df
         df.drop(index=df[mask].index, inplace=True)
         ## reset the indexes to account for the dropped rows
@@ -206,6 +206,9 @@ class Teams(object):
 
         self.replace_team_names(pts_df)
 
+        #pts_df.reset_index()
+        #pts_df.rename(columns={'index':'Team'}, inplace=True)
+
         self.pts_df = pts_df
 
         return self.pts_df
@@ -239,13 +242,19 @@ class Teams(object):
 
         
     def make_pax_leaderboard_df(self, df):
+
+        ## Get the unique list of all pax that have posted in the database
         pax_list = df['PAX'].unique()
-        dict = {}
+
+        ## Collect the rows in a list of lists then create a dataframe from that
+        rows=[]
         for pax in pax_list:
             points = df.loc[df['PAX'] == pax, 'Total Points'].sum()
-            dict[pax]=points
-        self.pax_leaderboard = pd.DataFrame(dict, index=[0]).transpose()
-        self.pax_leaderboard.rename(columns={0:'Points'}, inplace=True)
-        self.pax_leaderboard.sort_values(by="Points", ascending=False, inplace=True)
+            team = self.get_team_for_pax(pax)
+            rows.append([pax, team, points])
+        self.pax_leaderboard_df = pd.DataFrame(rows, columns=['PAX', 'Team', 'Points']) 
+        self.pax_leaderboard_df.sort_values(by="Points", ascending=False, inplace=True)
+        self.pax_leaderboard_df.reset_index(inplace=True)
+        self.pax_leaderboard_df.drop(columns={'index'}, inplace=True)
         
         print("")
