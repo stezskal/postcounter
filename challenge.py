@@ -55,6 +55,8 @@ def main(start_date: str, end_date: str, get_database: bool):
 
     teams.make_pax_leaderboard_df(day_df)
 
+    teams._dump_data_to_google_sheet(day_df)
+
 
 
     with open("output.txt", 'w') as file:
@@ -91,7 +93,7 @@ def main(start_date: str, end_date: str, get_database: bool):
             #file.write(f"{start_date:<8}  For team {teams.team_names[team]:<30},  @{pax:<20} posted at {ao} and scored {pts}! {q_str}\n")
             file.write(f'@{pax} posted at #{ao} and scored {pts} points for team {teams.team_names[team]}! {q_str}\n')
     
-    make_html.combine_dataframes_to_html('./challenge.htm',team_results,teams.pax_leaderboard_df,day_df,date=end_date,titles=["Team Standings", "PAX Individual Leaderboard","Post Data"])
+    make_html.combine_dataframes_to_html('./challenge.htm',team_results,teams.pax_leaderboard_df,day_df,date=end_date,titles=["Team Standings", "PAX Individual Leaderboard","Post Data (https://docs.google.com/spreadsheets/d/1Fv0EVOvntQHapQ9KBYYwwhG2_Q1NLzYDEqTSQWjzKU0)"])
 
 
 

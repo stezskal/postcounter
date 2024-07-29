@@ -258,3 +258,12 @@ class Teams(object):
         self.pax_leaderboard_df.drop(columns={'index'}, inplace=True)
         
         print("")
+
+    def _dump_data_to_google_sheet(self, df):
+        ## instantiate the sheets module (custom)
+        ## will use authentication to google sheets
+        ## make sure both google sheets have the service acct email shared
+        sheets_connection = sheets.sheets(name='F3 Teams 2024 Data')
+        ws=sheets_connection.get_sheet('data')
+        set_with_dataframe(worksheet=ws, dataframe=df, row=2, include_index=True)
+
