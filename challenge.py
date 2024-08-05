@@ -53,47 +53,17 @@ def main(start_date: str, end_date: str, get_database: bool):
 
     team_results = teams.tally_team_points(day_df)
 
+    games = teams.tally_round1_points(day_df)
+
     teams.make_pax_leaderboard_df(day_df)
 
     teams._dump_data_to_google_sheet(day_df)
 
 
 
-    with open("output.txt", 'w') as file:
-        file.write(f'{start_date}\n\n')
-
-        file.write(tabulate(team_results, headers='keys', tablefmt='pretty'))
-        file.write(f'\n\n')
-        file.write(tabulate(day_df, headers='keys', tablefmt='pretty'))
-        file.write(f'\n\n')
-        file.write(tabulate(teams.pax_df, headers='keys', tablefmt='pretty'))
-        file.write(f'\n\n')
-
-
-        print(f"Done")
-        file.write(f"{start_date:}  \n")
-
-        for index, row in day_df.iterrows():
-            pax = row['PAX']
-            q = row['Q']
-            ao = row['AO']
-            pts = row['Total Points']
-            if(pax==q):
-                q_today=True
-                q_str="(+Q Point!) "
-            else:
-                q_today=True
-                q_str=""
-        
-            team = row['Team']
-            if team=="NoTeam":
-                noteam_list.append(pax)
-        
-                
-            #file.write(f"{start_date:<8}  For team {teams.team_names[team]:<30},  @{pax:<20} posted at {ao} and scored {pts}! {q_str}\n")
-            file.write(f'@{pax} posted at #{ao} and scored {pts} points for team {teams.team_names[team]}! {q_str}\n')
     
-    make_html.combine_dataframes_to_html('./challenge.htm',team_results,teams.pax_leaderboard_df,day_df,date=end_date,titles=["Team Standings", "PAX Individual Leaderboard","Post Data (https://docs.google.com/spreadsheets/d/1Fv0EVOvntQHapQ9KBYYwwhG2_Q1NLzYDEqTSQWjzKU0)"])
+    make_html.combine_dataframes_to_html('./teams2024reg.htm',team_results,teams.pax_leaderboard_df,day_df,date=end_date,titles=["Team Standings", "PAX Individual Leaderboard","Post Data (https://docs.google.com/spreadsheets/d/1Fv0EVOvntQHapQ9KBYYwwhG2_Q1NLzYDEqTSQWjzKU0)"])
+    make_html.combine_dataframes_to_html('./teams2024.htm',*games,teams.pax_leaderboard_df,day_df,date=end_date,titles=["Game1","Game2","Game3","Game4", "PAX Individual Leaderboard","Post Data (https://docs.google.com/spreadsheets/d/1Fv0EVOvntQHapQ9KBYYwwhG2_Q1NLzYDEqTSQWjzKU0)"])
 
 
 

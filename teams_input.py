@@ -182,13 +182,16 @@ class Teams(object):
         df.loc[condition, 'Q Points'] = 0
         df.loc[condition, 'Total Points'] = df.loc[condition, 'Post Points']
         df.loc[condition, 'Notes'] = df.loc[condition, 'Notes'] + 'Run/Ruck no Q pts'
-            
+
+    def _sum_team_pts(self, df, team):
+        points = df.loc[df['Team'] == team, 'Total Points'].sum()
+        return points
 
     def tally_team_points(self, df):
 
         d={}
         for team in self.teams:
-            points = df.loc[df['Team'] == team, 'Total Points'].sum()
+            points = self._sum_team_pts(df, team)
             d[team]=points
         
             print(f"Team:{team}  points:{points}")
@@ -212,6 +215,33 @@ class Teams(object):
         self.pts_df = pts_df
 
         return self.pts_df
+
+    def tally_round1_points(self, df):
+
+        list_df = []
+        #matchups=[['Soybean', 'Scrum'],\
+        # ['Spork','FEMA'],\
+        #['Smores','Gazelle'],\
+        # ['LAX','D3']]
+        matchups=[['Soybean','Gazelle'],['Spork','LAX'],
+                  ['Smores','Scrum'],['D3','FEMA']]
+
+        
+        for game in matchups:
+            d={}
+            for team in game:
+                d[team]=self._sum_team_pts(df, team)
+            game_df = pd.DataFrame(d, index=[0]).transpose()
+            game_df.rename(columns={0:'Points'}, inplace=True)
+            game_df.sort_values(by='Points', ascending=False, inplace=True)
+            self.replace_team_names(game_df)
+            list_df.append(game_df)
+
+        return list_df
+
+
+
+
 
 
     def _get_team_names(self):
